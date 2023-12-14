@@ -1,50 +1,6 @@
-﻿/*
-	- Điều kiện sử dụng phép toán tương đối áp dụng với dữ liệu kiểu chuỗi
-		+Like/not like
-			+++ các ký tự đại diện
-				++ dấu % cho chuỗi ký tự bất kỳ có thể rỗng
-				++ dấu _ đại diện cho 1 ký tự bất kỳ
-				++ [a-m] khoảng ký tự từ a đến m
-	- sử dụng toán tử quan hệ and or not trong biểu thức điều kiện
-	-- điện kiện so sánh tập hợp in/ not in
-*/
--- liệt kê sinh viên có tên mà ký tự thứ 2 là 'u'
-select * from SinhVien where TenSV like '_u%'
-GO
--- liệt kê sinh viên có tên sv chứa 3 ký tự
-select * from SinhVien where TenSV like '___'
-select * from SinhVien where LEN(TenSV) =3
-GO
--- liệt kê sinh viên có tên có chứa ký tự đầu tiên trong khoảng từ a-m
-select * from SinhVien where TenSV like  N'[a-m]%'
-GO
-select * from SinhVien where TenSV like  N'^[a-m]%' -- ngược lại
-GO
--- liệt kê sinh viên có tháng sinh là tháng 2 và tháng 8
-select * from SinhVien where MONTH(NgaySinh) = 2 OR MONTH(NgaySinh) = 8 
-select * from SinhVien where MONTH(NgaySinh) in (2,8)
-GO
---========================
---7 Sắp xếp
--- sắp xếp tăng: ORDER BY <column_name> | <index> | <alise> ASC (mặc định)
--- sắp xếp giảm: ORDER BY <column_name> | <index> | <alise> DESC
--- liệt kê sinh viên , dữ liệu sắp xếp theo tên sinh viên tăng dần
-
-select MaSV, HoSV, TenSV, Phai, NgaySinh, NoiSinh, MaKH, HocBong, DiemTrungBinh
-FROM SinhVien ORDER BY TenSV
-select MaSV, HoSV, TenSV, Phai, NgaySinh, NoiSinh, MaKH, HocBong, DiemTrungBinh
-FROM SinhVien ORDER BY 3
-select MaSV, HoSV, TenSV as [tên sinh viên], Phai, NgaySinh, NoiSinh, MaKH, HocBong, DiemTrungBinh
-FROM SinhVien ORDER BY [tên sinh viên]
-
--- liệt kê sinh viên , dữ liệu sắp xếp theo tên sinh viên tăng dần nếu trùng thì sắp theo họ sinh viên giảm dần
-
-select MaSV, HoSV, TenSV, Phai, NgaySinh, NoiSinh, MaKH, HocBong, DiemTrungBinh
-FROM SinhVien ORDER BY TenSV ASC, HoSV DESC
-GO
+﻿------------------------PHẦN I ------------------------
 
 --câu 1
-
 select MaMH, TenMH, Sotiet from [dbo].[MonHoc]
 GO
 -- câu 2
@@ -126,8 +82,147 @@ GO
 
 -- Câu 25
 select HoSV + ' ' + TenSV as [Họ và tên],
-	[Phái] =IIF(Phai=1,N'Nam',IIF(Phai=0,N'Nữ',N'Khác')), NgaySinh
- from SinhVien
+[Phái] =IIF(Phai=1,N'Nam',IIF(Phai=0,N'Nữ',N'Khác')), NgaySinh
+from SinhVien
+GO
+--Câu 26
+select MaSV,(YEAR(GETDATE()) -YEAR(NgaySinh)) AS [Tuổi], NoiSinh, HocBong from SinhVien
+GO
+--câu 27
+select HoSV + ' ' + TenSV as [Họ và tên],(YEAR(GETDATE()) -YEAR(NgaySinh)) AS [Tuổi],HocBong from SinhVien
+GO
+--câu 28
+SELECT HoSV + ' ' + TenSV as [Họ và tên],(YEAR(GETDATE()) -YEAR(NgaySinh)) AS [Tuổi], KH.TenKH
+FROM SinhVien SV
+INNER JOIN Khoa KH ON KH.MaKH = SV.MaKH
+WHERE YEAR(GETDATE()) -YEAR(NgaySinh) BETWEEN 20 AND 30
+GO
+------------------------PHẦN II ------------------------
+--câu 1
+SELECT HoSV + ' ' + TenSV as [Họ và tên],[Phái] =IIF(Phai=1,N'Nam',IIF(Phai=0,N'Nữ',N'Khác')),(YEAR(GETDATE()) -YEAR(NgaySinh)) AS [Tuổi], MaKH
+FROM SinhVien ORDER BY 3
+GO
+--câu 2
+SELECT HoSV + ' ' + TenSV as [Họ và tên],Phai,CAST(DAY(NgaySinh) AS VARCHAR(2)) AS [ngày sinh], MaKH
+FROM SinhVien WHERE MONTH(NgaySinh) = 2 and YEAR(NgaySinh) =1994
+GO
+--câu 3
+select MaSV, HoSV, TenSV, Phai, NgaySinh, NoiSinh, MaKH, HocBong, DiemTrungBinh from SinhVien order by NgaySinh desc
+GO
+--câu 4
+select MaSV, Phai, NgaySinh, MaKH, 
+	CASE WHEN HocBong >500000 THEN N'Học bổng cao'
+	ELSE  N'Học bổng trung bình'
+	END
+ from SinhVien order by NgaySinh desc
+GO
+--câu 5
+select HoSV + ' ' + TenSV as [Họ và tên], MaKH,  DiemTrungBinh from SinhVien order by 1,MaKH desc
+GO
+--câu 6
+select HoSV + ' ' + TenSV as [Họ và tên],  [Giới tính] =IIF(Phai=1,N'Nam',IIF(Phai=0,N'Nữ',N'Khác')), KH.TenKH
+from SinhVien SV
+INNER JOIN Khoa KH  ON KH.MaKH = SV.MaKH
+WHERE KH.TenKH = N'Anh Văn'
+GO
+-- câu 7
+select  KH.TenKH,HoSV + ' ' + TenSV as [Họ và tên],  [Giới tính] =IIF(Phai=1,N'Nam',IIF(Phai=0,N'Nữ',N'Khác')), MH.TenMH, MH.Sotiet, KQ.Diem
+from SinhVien SV
+INNER JOIN Khoa KH  ON KH.MaKH = SV.MaKH
+INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
+INNER JOIN  MonHoc MH ON MH.MaMH = KQ.MaMH
+WHERE KH.MaKH = N'TH'
+GO
+-- CÂU 8
+select  HoSV + ' ' + TenSV as [Họ và tên], KH.MaKH, MH.TenMH, KQ.Diem , IIF(KQ.Diem>8,N'Giỏi',IIF(KQ.Diem<6,N'Trung bình',N'Khá'))
+from SinhVien SV
+INNER JOIN Khoa KH  ON KH.MaKH = SV.MaKH
+INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
+INNER JOIN  MonHoc MH ON MH.MaMH = KQ.MaMH
+WHERE KH.MaKH = N'TH'
+GO
+------------------------PHẦN III ------------------------
+-- câu 1
+select MH.MaMH, MH.TenMH,AVG(KQ.Diem) as [điểm trung bình]
+from Ketqua KQ
+INNER JOIN MonHoc MH ON KQ.MaMH = MH.MaMH
+GROUP BY MH.MaMH,MH.TenMH
+GO
+-- câu 2
+select   HoSV + ' ' + TenSV as [Họ và tên] , KH.TenKH, COUNT(KQ.MaSV) as [tổng số môn thi]
+from SinhVien SV
+INNER JOIN Khoa KH  ON KH.MaKH = SV.MaKH
+INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
+WHERE Diem is not null
+GROUP BY HoSV, TenSV,TenKH
+GO
+-- câu 3
+select    TenSV  , TenKH,Phai, SUM(ISNULL(Diem,0)) as [Tổng điểm thi]
+from SinhVien SV
+INNER JOIN Khoa KH  ON KH.MaKH = SV.MaKH
+INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
+GROUP BY  TenSV,TenKH,Phai
+GO
+-- câu 4
+select    HoSV + ' ' + TenSV as [Họ và tên] ,COUNT(SV.MaKH)
+from Khoa KH 
+INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
+GROUP BY  TenKH
+GO
+-- câu 5
+select    TenSV  , MAX(KQ.Diem) as [Điểm]
+from SinhVien SV
+INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
+GROUP BY  SV.MaSV, TenSV
+GO
+-- câu 6
+select TOP(1) WITH TIES TenMH  , Sotiet
+from  MonHoc MH ORDER BY Sotiet DESC
+GO
+-- câu 7
+SELECT KH.MaKH, KH.TenKH , MAX(HocBong)
+FROM Khoa KH 
+INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
+GROUP BY KH.MaKH, KH.TenKH
+GO
 
+-- câu 8
+select TenMH  , MAX(KQ.Diem)
+from  MonHoc MH
+INNER JOIN Ketqua KQ ON KQ.MaMH = MH.MaMH
+GROUP BY MH.MaMH,TenMH
+GO
+-- câu 9
+SELECT MH.MaMH, TenMH  , COUNT(KQ.MaSV) AS [Số sinh viên đang học]
+FROM  MonHoc MH
+INNER JOIN Ketqua KQ ON KQ.MaMH = MH.MaMH
+GROUP BY MH.MaMH, TenMH 
+GO
+-- câu 10
+SELECT  TOP(1) WITH TIES  TenMH, Sotiet, TenSV, Diem
+FROM  MonHoc MH
+INNER JOIN Ketqua KQ ON KQ.MaMH = MH.MaMH
+INNER JOIN SinhVien SV ON KQ.MaSV = SV.MaSV
+ORDER BY Diem DESC
+GO
+-- câu 11
+SELECT  TOP(1) WITH TIES KH.MaKH, KH.TenKH , COUNT(SV.MaKH) as [Tổng sinh viên]
+FROM Khoa KH 
+INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
+GROUP BY KH.MaKH, KH.TenKH ORDER BY 3 DESC
+GO
+-- câu 12
+SELECT  TOP(1) WITH TIES  KH.TenKH ,sv.TenSV, HocBong
+FROM Khoa KH 
+INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
+ORDER BY 3 DESC
+GO
 
-
+-- câu 13
+SELECT  TOP(1) WITH TIES  SV.MaSV ,SV.HoSV +' ' + SV.TenSV AS [Họ và tên],TenKH, HocBong
+FROM Khoa KH 
+INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
+WHERE KH.MaKH ='TH'
+ORDER BY HocBong DESC
+GO
+-- CÂU 14
