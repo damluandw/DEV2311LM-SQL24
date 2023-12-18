@@ -153,7 +153,7 @@ from SinhVien SV
 INNER JOIN Khoa KH  ON KH.MaKH = SV.MaKH
 INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
 WHERE Diem is not null
-GROUP BY HoSV, TenSV,TenKH
+GROUP BY HoSV, TenSV,TenKH order by HoSV
 GO
 --CÂU 3
 select    TenSV  , TenKH,Phai, SUM(ISNULL(Diem,0)) as [Tổng điểm thi]
@@ -163,7 +163,7 @@ INNER JOIN Ketqua KQ ON Kq.MaSV = SV.MaSV
 GROUP BY  TenSV,TenKH,Phai
 GO
 --CÂU 4
-select    HoSV + ' ' + TenSV as [Họ và tên] ,COUNT(SV.MaKH)
+select    TenKH ,COUNT(SV.MaKH) as [tổng sinh viên]
 from Khoa KH 
 INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
 GROUP BY  TenKH
@@ -184,7 +184,9 @@ FROM Khoa KH
 INNER JOIN SinhVien SV ON KH.MaKH = SV.MaKH
 GROUP BY KH.MaKH, KH.TenKH
 GO
-
+SELECT KH.MaKH, KH.TenKH , MAX(HocBong)
+FROM Khoa KH, SinhVien SV WHERE KH.MaKH = SV.MaKH
+GROUP BY KH.MaKH, KH.TenKH
 --CÂU 8
 select TenMH  , MAX(KQ.Diem)
 from  MonHoc MH
@@ -472,19 +474,8 @@ SELECT 'CO2', MaMH, 8 FROM MonHoc
 ------------------------PHẦN VII ------------------------
 --CÂU 1
 --C1
-CREATE TABLE DELETETABLE
-(
-	[MaSV] [nvarchar](3) NOT NULL,
-	[HoTenSV] [nvarchar](23) NOT NULL,
-	[Phai] [bit] NOT NULL,
-	[NgaySinh] [smalldatetime] NOT NULL,
-	[NoiSinh] [nvarchar](100) NOT NULL,
-	[TenKH] [nvarchar](50) NOT NULL,
-	[HocBong] [float] NULL,
-	CONSTRAINT [Prk_DELETETABLE_MaSV] PRIMARY KEY (MaSV)
-)
-INSERT INTO DELETETABLE
-SELECT MaSV, HoSV+' '+ TenSV, Phai, NgaySinh, NoiSinh, TenKH, HocBong 
+SELECT MaSV, HoSV+' '+ TenSV as HOVATEN, Phai, NgaySinh, NoiSinh, TenKH, HocBong 
+INTO DELETETABLE
 FROM SinhVien SV
 INNER JOIN Khoa KH ON KH.MAKH = SV.MAKH
 --C2
@@ -502,27 +493,28 @@ DECLARE @DELETETABLE TABLE
 	[NgaySinh] [smalldatetime] NOT NULL,
 	[NoiSinh] [nvarchar](100) NOT NULL,
 	[TenKH] [nvarchar](50) NOT NULL,
-	[HocBong] [float] NULL,
-	CONSTRAINT [Prk_DELETETABLE_MaSV] PRIMARY KEY (MaSV)
+	[HocBong] [float] NULL
 )
 
 INSERT INTO @DELETETABLE
 SELECT MaSV, HoSV+' '+ TenSV, Phai, NgaySinh, NoiSinh, TenKH, HocBong 
 FROM SinhVien SV
 INNER JOIN Khoa KH ON KH.MAKH = SV.MAKH
+SELECT * FROM @DELETETABLE
 GO
 --CÂU 2
-DELETE DELETETABLE WHERE HocBong IS NULL OR HocBong = 0
+DELETE #DELETETABLE WHERE HocBong IS NULL OR HocBong = 0
 GO
 --CÂU 3
-DELETE DELETETABLE WHERE NgaySinh ='19871220'
+DELETE #DELETETABLE WHERE NgaySinh ='19871220'
 GO
 --CÂU 4
-DELETE DELETETABLE WHERE YEAR(NgaySinh) < 1987 AND MONTH(NgaySinh) <3
+DELETE #DELETETABLE WHERE YEAR(NgaySinh) < 1987 AND MONTH(NgaySinh) <3
 GO
 --CÂU 5
-DELETE DELETETABLE WHERE Phai =0  AND TenKH = N'Tin học'
+DELETE #DELETETABLE WHERE Phai =0  AND TenKH = N'Tin học'
 GO
+DROP TABLE #DELETETABLE
 ------------------------PHẦN VIII ------------------------
 --CÂU 1
 UPDATE MonHoc SET Sotiet =45 WHERE TenMH = N'Văn'
